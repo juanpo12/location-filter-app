@@ -6,17 +6,54 @@ const prisma = new PrismaClient()
 
 export const GET = async (req: NextRequest) => {
   try {
-    const phoneNumbers = await prisma.callRecord.findMany()
+    const searchParams = req.nextUrl.searchParams
 
-    if(!phoneNumbers) {
-      return NextResponse.json({ error: 'No phone numbers found' }, { status: 404 })
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
+    const phoneNumbers = searchParams.getAll('phoneNumbers');
+    const minLat = searchParams.get('minLat');
+    const maxLat = searchParams.get('maxLat');
+    const minLon = searchParams.get('minLon');
+    const maxLon = searchParams.get('maxLon');
+
+    let phoneRecords;
+
+    if (startDate && endDate && phoneNumbers.length && minLat && maxLat && minLon && maxLon) {
+      phoneRecords = await prisma.callRecord.findMany({
+        where: {
+          datetime: {
+            gte: new Date(startDate),
+            lte: new Date(endDate),
+          },
+          caller: {
+            in: phoneNumbers,
+          },
+          latitude: {
+            gte: parseFloat(minLat),
+            lte: parseFloat(maxLat),
+          },
+          longitude: {
+            gte: parseFloat(minLon),
+            lte: parseFloat(maxLon),
+          }
+        }
+      });
+
+      if (phoneRecords.length === 0) {
+        return NextResponse.json({ error: 'No records found with the given filters' }, { status: 404 });
+      }
+    } else {
+      phoneRecords = await prisma.callRecord.findMany();
+      if (!phoneRecords.length) {
+        return NextResponse.json({ error: 'No phone numbers found' }, { status: 404 });
+      }
     }
 
-    return NextResponse.json(phoneNumbers as any, { status: 200 })
+    return NextResponse.json(phoneRecords, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
+    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 });
   }
-}
+};
 
 export const POST = async (req: NextRequest) => {
   try {
