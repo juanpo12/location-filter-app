@@ -68,7 +68,7 @@ const NewPhone = () => {
       .then((response) => response.json())
       .then((data) => {
         console.log('Success:', data);
-        window.location.reload();
+        alert('Phone added successfully!');
       })
       .catch((error) => {
         console.error('Error:', error);

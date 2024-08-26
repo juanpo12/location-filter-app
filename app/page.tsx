@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unescaped-entities */
 'use client'
 import MapComponent from "@/component/MapComponent";
 import ModalConfirmDelete from "@/component/ModalConfirmDelete";
