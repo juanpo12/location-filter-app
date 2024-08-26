@@ -39,8 +39,8 @@ export const GET = async (req: NextRequest) => {
         }
       });
 
-      if (phoneRecords.length === 0) {
-        return NextResponse.json({ error: 'No records found with the given filters' }, { status: 404 });
+      if (phoneRecords.length <= 0) {
+        return NextResponse.json({ error: 'No records found with the given filters'}, { status: 404 });
       }
     } else {
       phoneRecords = await prisma.callRecord.findMany();
@@ -51,13 +51,13 @@ export const GET = async (req: NextRequest) => {
 
     return NextResponse.json(phoneRecords, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 };
 
 export const POST = async (req: NextRequest) => {
   try {
-    const { number, timestamp, latitude, longitude, called, antennaId, azimuth, horizontalAperture, coverageRadius, duration } = await req.json()
+    const { caller, datetime, latitude, longitude, called, antennaId, azimuth, horizontalAperture, coverageRadius, duration } = await req.json()
 
     if (isNaN(latitude) || latitude < -90 || latitude > 90) {
       return NextResponse.json({ error: 'Invalid latitude' }, { status: 400 })
@@ -66,7 +66,7 @@ export const POST = async (req: NextRequest) => {
       return NextResponse.json({ error: 'Invalid longitude' }, { status: 400 })
     }
     
-    if (!number || !timestamp 
+    if (!caller || !datetime 
       || called === undefined 
       || antennaId === undefined 
       || azimuth === undefined 
@@ -78,8 +78,8 @@ export const POST = async (req: NextRequest) => {
 
     const existingRecord = await prisma.callRecord.findFirst({
       where: {
-        caller: number,
-        datetime: new Date(timestamp),
+        caller: caller,
+        datetime: new Date(datetime),
         latitude,
         longitude,
       },
@@ -92,8 +92,8 @@ export const POST = async (req: NextRequest) => {
 
     const phoneNumber = await prisma.callRecord.create({
       data: {
-        caller: number,
-        datetime: new Date(timestamp),
+        caller: caller,
+        datetime: new Date(datetime),
         latitude,
         longitude,
         called,
@@ -110,6 +110,27 @@ export const POST = async (req: NextRequest) => {
     if (error instanceof PrismaClientKnownRequestError) {
       return NextResponse.json({ error: 'Database error' }, { status: 500 })
     }
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+  }
+}
+
+export const DELETE = async (req: NextRequest) => {
+  try {
+    const searchParams = req.nextUrl.searchParams
+    const id = searchParams.get('id')
+
+    if (!id) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    }
+
+    await prisma.callRecord.delete({
+      where: {
+        id: +id
+      }
+    })
+
+    return NextResponse.json({ message: 'Record deleted successfully' }, { status: 200 })
+  } catch (error) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }
