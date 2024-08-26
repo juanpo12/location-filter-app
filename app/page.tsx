@@ -1,10 +1,12 @@
 'use client'
-import MapComponent from "@/component/MapComponent";
 import ModalConfirmDelete from "@/component/ModalConfirmDelete";
 import NewPhone from "@/component/NewPhone";
 import PhoneFilter from "@/component/PhoneFilter";
 import { Alert, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
 import { useEffect, useState } from "react";
+import dynamic from 'next/dynamic';
+const MapComponent = dynamic(() => import('@/component/MapComponent'), { ssr: false });
+
 
 export default function Home() {
   const [filter, setFilter] = useState({

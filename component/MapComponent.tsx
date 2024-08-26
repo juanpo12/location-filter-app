@@ -1,4 +1,4 @@
-'use client';
+import dynamic from 'next/dynamic';
 import { useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -18,6 +18,10 @@ const SetViewOnClick = ({ latitude, longitude }: { latitude: number; longitude: 
 };
 
 const MapComponent: React.FC<MapComponentProps> = ({ latitude, longitude }) => {
+  if (typeof window === 'undefined') {
+    return null; 
+  }
+
   return (
     <MapContainer
       style={{ height: '500px', width: '100%' }}
